@@ -1,10 +1,10 @@
 import React, { useState } from 'react';
-import { View, Text, StyleSheet, Dimensions, ScrollView, Modal, TouchableWithoutFeedback, Animated } from 'react-native';
+import { View, Text, StyleSheet, Dimensions, ScrollView, Modal, TouchableWithoutFeedback, Animated, TouchableOpacity } from 'react-native';
 import fortunesData from './fortunesData';
 
 const App = () => {
   const [fortunes, setFortunes] = useState(fortunesData);
-  
+
   const [selectedFortune, setSelectedFortune] = useState(null);
   const [isModalVisible, setModalVisible] = useState(false);
   const animatedValue = new Animated.Value(1);
@@ -28,9 +28,9 @@ const App = () => {
     let c = color.substring(1);
     let rgb = parseInt(c, 16);
     let r = (rgb >> 16) & 0xff;
-    let g = (rgb >>  8) & 0xff;
-    let b = (rgb >>  0) & 0xff;
-  
+    let g = (rgb >> 8) & 0xff;
+    let b = (rgb >> 0) & 0xff;
+
     let lighterColor = ((r * 0.8) << 16) | ((g * 0.8) << 8) | (b * 0.8);
     return '#' + (0x1000000 + lighterColor).toString(16).slice(1)
   }
@@ -45,12 +45,12 @@ const App = () => {
       // Add a full width item
       let fullWidthItem = data.shift();
       rows.push(
-        <View style={[styles.fullWidthItem, {backgroundColor: color}]}>
-          <Text style={styles.fortune}>{fullWidthItem.text}</Text>
-          <View style={[styles.datePill, {backgroundColor: calculateLighterColor(color)}]}>
-            <Text style={styles.date}>{new Date(fullWidthItem.date).toDateString()}</Text>
-          </View>
-        </View>
+        <FortuneCard
+          item={fullWidthItem}
+          color={color}
+          style={[styles.fullWidthItem, { backgroundColor: color }]}
+          key={fullWidthItem.date}
+        />
       );
 
       // Add a row of two items, if there are still items left
@@ -60,21 +60,22 @@ const App = () => {
           let row = rowItems.map((item, index) => {
             let halfWidthColor = getRandomColor();
             return (
-              <View style={[styles.halfWidthItem, {backgroundColor: halfWidthColor}]} key={index}>
-                <Text style={styles.fortune}>{item.text}</Text>
-                <View style={[styles.datePill, {backgroundColor: calculateLighterColor(halfWidthColor)}]}>
-                  <Text style={styles.date}>{new Date(item.date).toDateString()}</Text>
-                </View>
-              </View>
+              <FortuneCard
+                item={item}
+                color={halfWidthColor}
+                style={[styles.halfWidthItem, { backgroundColor: halfWidthColor }]}
+                key={item.date}
+              />
             );
           });
-          rows.push(<View style={styles.row}>{row}</View>);
+          rows.push(<View style={styles.row} key={'row-' + data.length}>{row}</View>);
         }
       }
     }
 
     return rows;
   };
+
 
   const handlePress = (fortune) => {
     Animated.spring(animatedValue, {
@@ -91,12 +92,12 @@ const App = () => {
     });
   }
 
-  const FortuneCard = ({item, style}) => {
+  const FortuneCard = ({ item, style, color }) => { // Add color to the props
     return (
       <TouchableWithoutFeedback onPress={() => handlePress(item)}>
-        <Animated.View style={[style, {transform: [{ scale: animatedValue }]}]}>
+        <Animated.View style={[style, { transform: [{ scale: animatedValue }] }]}>
           <Text style={styles.fortune}>{item.text}</Text>
-          <View style={[styles.datePill, {backgroundColor: calculateLighterColor(color)}]}>
+          <View style={[styles.datePill, { backgroundColor: calculateLighterColor(color) }]}>
             <Text style={styles.date}>{new Date(item.date).toDateString()}</Text>
           </View>
         </Animated.View>
@@ -121,12 +122,12 @@ const App = () => {
           <View style={styles.modalView}>
             <Text style={styles.modalText}>{selectedFortune?.text}</Text>
             <Text style={styles.modalDate}>{new Date(selectedFortune?.date).toDateString()}</Text>
-            <TouchableWithoutFeedback
-              style={{...styles.openButton, backgroundColor: "#2196F3" }}
+            <TouchableOpacity
+              style={{ ...styles.openButton, backgroundColor: "#2196F3" }}
               onPress={() => setModalVisible(!isModalVisible)}
             >
               <Text style={styles.textStyle}>Hide Modal</Text>
-            </TouchableWithoutFeedback>
+            </TouchableOpacity>
           </View>
         </View>
       </Modal>
