@@ -1,87 +1,55 @@
 import React, { useState } from 'react';
-import { View, Text, StyleSheet, Dimensions } from 'react-native';
+import { View, Text, StyleSheet, Dimensions, ScrollView, Modal, TouchableWithoutFeedback, Animated } from 'react-native';
+import fortunesData from './fortunesData';
 
 const App = () => {
-  const [fortunes, setFortunes] = useState([
-    {
-      text: "Today it's up to you to create the peacefulness you long for.",
-      date: "2021-07-06T22:55:00.037Z"
-      },
-      {
-      text: "If you refuse to accept anything but the best, you very often get it.",
-      date: "2021-07-15T15:14:10.890Z"
-      },
-      {
-      text: "A smile is your passport into the hearts of others.",
-      date: "2021-07-24T07:33:21.743Z"
-      },
-      {
-      text: "A good way to keep healthy is to eat more Chinese food.",
-      date: "2021-08-01T23:52:32.596Z"
-      },
-      {
-      text: "Your high-minded principles spell success.",
-      date: "2021-08-10T16:11:43.449Z"
-      },
-      {
-      text: "Hard work pays off in the future, laziness pays off now.",
-      date: "2021-08-19T08:30:54.302Z"
-      },
-      {
-      text: "Change can hurt, but it leads a path to something better.",
-      date: "2021-08-28T00:50:05.155Z"
-      },
-      {
-      text: "Enjoy the good luck a companion brings you.",
-      date: "2021-09-05T17:09:16.008Z"
-      },
-      {
-      text: "People are naturally attracted to you.",
-      date: "2021-09-14T09:28:26.861Z"
-      },
-      {
-      text: "Hidden in a valley beside an open stream- This will be the type of place where you will find your dream.",
-      date: "2021-09-23T01:47:37.714Z"
-      },
-      {
-      text: "A chance meeting opens new doors to success and friendship.",
-      date: "2021-10-01T18:06:48.567Z"
-      },
-      {
-      text: "You learn from your mistakes... You will learn a lot today.",
-      date: "2021-10-10T10:25:59.420Z"
-      },
-      {
-      text: "If you have something good in your life, don't let it go!",
-      date: "2021-10-19T02:45:10.273Z"
-      },
-      {
-      text: "What ever your goal is in life, embrace it, visualize it, and for sure, it will be yours.",
-      date: "2021-10-27T19:04:21.126Z"
-      },
-      {
-      text: "Your shoes will make you happy today.",
-      date: "2021-11-05T11:23:31.979Z"
-      },
-      {
-      text: "You cannot love life until you live the life you love.",
-      date: "2021-11-14T03:42:42.832Z"
-      }
-  ]);
+  const [fortunes, setFortunes] = useState(fortunesData);
+  
+  const [selectedFortune, setSelectedFortune] = useState(null);
+  const [isModalVisible, setModalVisible] = useState(false);
+  const animatedValue = new Animated.Value(1);
 
   const windowWidth = Dimensions.get('window').width;
+
+  const colors = [
+    '#0AB5FF',
+    '#9146FF',
+    '#20C09F',
+    '#0066FF',
+    '#5A34F3',
+    '#00C1CD',
+  ];
+
+  const getRandomColor = () => {
+    return colors[Math.floor(Math.random() * colors.length)];
+  };
+
+  const calculateLighterColor = (color) => {
+    let c = color.substring(1);
+    let rgb = parseInt(c, 16);
+    let r = (rgb >> 16) & 0xff;
+    let g = (rgb >>  8) & 0xff;
+    let b = (rgb >>  0) & 0xff;
+  
+    let lighterColor = ((r * 0.8) << 16) | ((g * 0.8) << 8) | (b * 0.8);
+    return '#' + (0x1000000 + lighterColor).toString(16).slice(1)
+  }
 
   const renderFortuneCards = () => {
     let rows = [];
     let data = [...fortunes];
 
     while (data.length > 0) {
+      let color = getRandomColor();
+
       // Add a full width item
       let fullWidthItem = data.shift();
       rows.push(
-        <View style={styles.fullWidthItem}>
-          <Text style={styles.date}>{new Date(fullWidthItem.date).toDateString()}</Text>
+        <View style={[styles.fullWidthItem, {backgroundColor: color}]}>
           <Text style={styles.fortune}>{fullWidthItem.text}</Text>
+          <View style={[styles.datePill, {backgroundColor: calculateLighterColor(color)}]}>
+            <Text style={styles.date}>{new Date(fullWidthItem.date).toDateString()}</Text>
+          </View>
         </View>
       );
 
@@ -89,12 +57,17 @@ const App = () => {
       for (let i = 0; i < 2; i++) {
         if (data.length > 0) {
           let rowItems = data.splice(0, 2);
-          let row = rowItems.map((item, index) => (
-            <View style={styles.halfWidthItem} key={index}>
-              <Text style={styles.date}>{new Date(item.date).toDateString()}</Text>
-              <Text style={styles.fortune}>{item.text}</Text>
-            </View>
-          ));
+          let row = rowItems.map((item, index) => {
+            let halfWidthColor = getRandomColor();
+            return (
+              <View style={[styles.halfWidthItem, {backgroundColor: halfWidthColor}]} key={index}>
+                <Text style={styles.fortune}>{item.text}</Text>
+                <View style={[styles.datePill, {backgroundColor: calculateLighterColor(halfWidthColor)}]}>
+                  <Text style={styles.date}>{new Date(item.date).toDateString()}</Text>
+                </View>
+              </View>
+            );
+          });
           rows.push(<View style={styles.row}>{row}</View>);
         }
       }
@@ -103,14 +76,65 @@ const App = () => {
     return rows;
   };
 
+  const handlePress = (fortune) => {
+    Animated.spring(animatedValue, {
+      toValue: .95,
+      useNativeDriver: true
+    }).start(() => {
+      Animated.spring(animatedValue, {
+        toValue: 1,
+        useNativeDriver: true
+      }).start(() => {
+        setSelectedFortune(fortune);
+        setModalVisible(true);
+      });
+    });
+  }
+
+  const FortuneCard = ({item, style}) => {
+    return (
+      <TouchableWithoutFeedback onPress={() => handlePress(item)}>
+        <Animated.View style={[style, {transform: [{ scale: animatedValue }]}]}>
+          <Text style={styles.fortune}>{item.text}</Text>
+          <View style={[styles.datePill, {backgroundColor: calculateLighterColor(color)}]}>
+            <Text style={styles.date}>{new Date(item.date).toDateString()}</Text>
+          </View>
+        </Animated.View>
+      </TouchableWithoutFeedback>
+    );
+  }
+
+  // Update your renderFortuneCards to use FortuneCard component
+
   return (
     <View style={styles.container}>
       <Text style={styles.title}>My Fortunes</Text>
-      <View>{renderFortuneCards()}</View>
+      <ScrollView>{renderFortuneCards()}</ScrollView>
+
+      <Modal
+        animationType="slide"
+        transparent={true}
+        visible={isModalVisible}
+        onRequestClose={() => setModalVisible(false)}
+      >
+        <View style={styles.centeredView}>
+          <View style={styles.modalView}>
+            <Text style={styles.modalText}>{selectedFortune?.text}</Text>
+            <Text style={styles.modalDate}>{new Date(selectedFortune?.date).toDateString()}</Text>
+            <TouchableWithoutFeedback
+              style={{...styles.openButton, backgroundColor: "#2196F3" }}
+              onPress={() => setModalVisible(!isModalVisible)}
+            >
+              <Text style={styles.textStyle}>Hide Modal</Text>
+            </TouchableWithoutFeedback>
+          </View>
+        </View>
+      </Modal>
     </View>
   );
 };
 
+// Add styles for modal
 const styles = StyleSheet.create({
   container: {
     flex: 1,
@@ -128,26 +152,62 @@ const styles = StyleSheet.create({
     marginBottom: 10,
   },
   fullWidthItem: {
-    backgroundColor: '#fff',
     padding: 20,
     marginBottom: 10,
-    borderRadius: 5,
+    borderRadius: 20,
+    height: 200,
   },
   halfWidthItem: {
-    backgroundColor: '#fff',
     padding: 20,
     marginBottom: 10,
-    borderRadius: 5,
-    width: '48%', // less than 50% to leave some space between items
+    borderRadius: 20,
+    width: '48%',
+    height: 200,
+  },
+  datePill: {
+    alignSelf: 'flex-start',
+    borderRadius: 20,
+    padding: 10,
+    marginTop: 10,
   },
   date: {
     fontSize: 12,
-    marginBottom: 10,
-    color: 'grey',
+    color: 'white',
   },
   fortune: {
     fontSize: 16,
+    color: 'white',
   },
+  centeredView: {
+    flex: 1,
+    justifyContent: "center",
+    alignItems: "center",
+    marginTop: 22
+  },
+  modalView: {
+    margin: 20,
+    backgroundColor: "white",
+    borderRadius: 20,
+    padding: 35,
+    alignItems: "center",
+    shadowColor: "#000",
+    shadowOffset: {
+      width: 0,
+      height: 2
+    },
+    shadowOpacity: 0.25,
+    shadowRadius: 4,
+    elevation: 5
+  },
+  modalText: {
+    marginBottom: 15,
+    textAlign: "center"
+  },
+  modalDate: {
+    marginBottom: 15,
+    textAlign: "center",
+    color: 'grey'
+  }
 });
 
 export default App;
