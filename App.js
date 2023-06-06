@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { View, Text, StyleSheet, Dimensions, ScrollView, Modal, TouchableWithoutFeedback, Animated, TouchableOpacity } from 'react-native';
+import { View, Text, StyleSheet, Dimensions, ScrollView, Modal, TouchableWithoutFeedback, Animated, TouchableOpacity, TextInput } from 'react-native';
 import fortunesData from './fortunesData';
 
 const App = () => {
@@ -7,6 +7,8 @@ const App = () => {
 
   const [selectedFortune, setSelectedFortune] = useState(null);
   const [isModalVisible, setModalVisible] = useState(false);
+  const [isAddFortuneModalVisible, setIsAddFortuneModalVisible] = useState(false);
+  const [newFortuneText, setNewFortuneText] = useState("");
   const animatedValue = new Animated.Value(1);
 
   const windowWidth = Dimensions.get('window').width;
@@ -42,7 +44,6 @@ const App = () => {
     while (data.length > 0) {
       let color = getRandomColor();
 
-      // Add a full width item
       let fullWidthItem = data.shift();
       rows.push(
         <FortuneCard
@@ -53,7 +54,6 @@ const App = () => {
         />
       );
 
-      // Add a row of two items, if there are still items left
       for (let i = 0; i < 2; i++) {
         if (data.length > 0) {
           let rowItems = data.splice(0, 2);
@@ -92,7 +92,21 @@ const App = () => {
     });
   }
 
-  const FortuneCard = ({ item, style, color }) => { // Add color to the props
+  const addFortune = () => {
+    if (newFortuneText) {
+      const newFortune = {
+        text: newFortuneText,
+        date: new Date().toISOString(),
+        color: getRandomColor(),
+      };
+      setFortunes([...fortunes, newFortune]);
+      setNewFortuneText('');
+      setModalVisible(false);
+    }
+  };
+
+
+  const FortuneCard = ({ item, style, color }) => {
     return (
       <TouchableWithoutFeedback onPress={() => handlePress(item)}>
         <Animated.View style={[style, { transform: [{ scale: animatedValue }] }]}>
@@ -105,11 +119,14 @@ const App = () => {
     );
   }
 
-  // Update your renderFortuneCards to use FortuneCard component
 
   return (
     <View style={styles.container}>
       <Text style={styles.title}>My Fortunes</Text>
+      <View style={styles.addButtonContainer}>
+        <TouchableOpacity style={styles.addButton} onPress={() => setIsAddFortuneModalVisible(true)}>
+          <Text style={styles.addButtonText}>+</Text>
+        </TouchableOpacity></View>
       <ScrollView>{renderFortuneCards()}</ScrollView>
 
       <Modal
@@ -118,24 +135,65 @@ const App = () => {
         visible={isModalVisible}
         onRequestClose={() => setModalVisible(false)}
       >
-        <View style={styles.centeredView}>
-          <View style={styles.modalView}>
-            <Text style={styles.modalText}>{selectedFortune?.text}</Text>
-            <Text style={styles.modalDate}>{new Date(selectedFortune?.date).toDateString()}</Text>
-            <TouchableOpacity
-              style={{ ...styles.openButton, backgroundColor: "#2196F3" }}
-              onPress={() => setModalVisible(!isModalVisible)}
-            >
-              <Text style={styles.textStyle}>Hide Modal</Text>
-            </TouchableOpacity>
+        <View style={styles.modalView}>
+          <View style={styles.modalContentWrapper}>
+            <View style={styles.modalContent}>
+              <View style={styles.closeButton}>
+                <TouchableOpacity onPress={() => setModalVisible(false)}>
+                  <Text style={styles.closeButtonText}>x</Text>
+                </TouchableOpacity>
+              </View>
+              <Text style={styles.modalText}>{selectedFortune?.text}</Text>
+              <View style={styles.modalDatePill}>
+                <Text style={styles.modalDate}>
+                  {new Date(selectedFortune?.date).toDateString()}
+                </Text>
+              </View>
+              <TouchableOpacity
+                style={{ ...styles.openButton, backgroundColor: '#2196F3' }}
+                onPress={() => setModalVisible(!isModalVisible)}
+              >
+                {/* <Text style={styles.textStyle}>Hide Modal</Text> */}
+              </TouchableOpacity>
+            </View>
           </View>
         </View>
       </Modal>
+
+
+      <Modal
+        animationType="slide"
+        transparent={true}
+        visible={isAddFortuneModalVisible}
+        onRequestClose={() => setIsAddFortuneModalVisible(false)}
+      >
+        <View style={styles.modalView}>
+          <View style={styles.modalContentWrapper}>
+            <View style={styles.modalContentAdd}>
+              <Text style={styles.modalTitle}>Add Fortune</Text>
+              <TextInput
+                style={styles.modalTextInput}
+                placeholder="Enter your fortune..."
+                value={newFortuneText}
+                onChangeText={setNewFortuneText}
+              />
+              <TouchableOpacity style={styles.modalButton} onPress={addFortune}>
+                <Text style={styles.modalButtonText}>Add</Text>
+              </TouchableOpacity>
+              <TouchableOpacity style={styles.modalButton} onPress={() => setIsAddFortuneModalVisible(false)}>
+                <Text style={styles.modalButtonText}>Cancel</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        </View>
+      </Modal>
+
+
+
     </View>
   );
 };
 
-// Add styles for modal
 const styles = StyleSheet.create({
   container: {
     flex: 1,
@@ -146,6 +204,51 @@ const styles = StyleSheet.create({
     fontSize: 24,
     fontWeight: 'bold',
     marginBottom: 20,
+  },
+  addButtonContainer: {
+    position: 'absolute',
+    bottom: 20,
+    right: 20,
+    zIndex: 1,
+  },
+  addButton: {
+    backgroundColor: '#0AB5FF',
+    width: 60,
+    height: 60,
+    borderRadius: 30,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  addButtonText: {
+    fontSize: 24,
+    color: '#ffffff',
+  },
+  modalTitle: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    marginBottom: 20,
+    textAlign: 'center',
+  },
+  modalTextInput: {
+    width: '100%',
+    height: 40,
+    marginBottom: 20,
+    borderWidth: 1,
+    borderColor: '#ccc',
+    borderRadius: 5,
+    paddingHorizontal: 10,
+  },
+  modalButton: {
+    backgroundColor: '#0AB5FF',
+    paddingVertical: 10,
+    paddingHorizontal: 20,
+    borderRadius: 5,
+    marginBottom: 10,
+  },
+  modalButtonText: {
+    color: '#ffffff',
+    fontSize: 16,
+    textAlign: 'center',
   },
   row: {
     flexDirection: 'row',
@@ -179,36 +282,74 @@ const styles = StyleSheet.create({
     fontSize: 16,
     color: 'white',
   },
-  centeredView: {
-    flex: 1,
-    justifyContent: "center",
-    alignItems: "center",
-    marginTop: 22
-  },
   modalView: {
-    margin: 20,
-    backgroundColor: "white",
-    borderRadius: 20,
-    padding: 35,
-    alignItems: "center",
-    shadowColor: "#000",
-    shadowOffset: {
-      width: 0,
-      height: 2
-    },
-    shadowOpacity: 0.25,
-    shadowRadius: 4,
-    elevation: 5
+    flex: 1,
+    margin: 0,
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: 'transparent',
+    width: "100%"
+  },
+  modalContent: {
+    flex: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: 'transparent',
+  },
+  modalContentAdd: {
+    width: '80%',
+    padding: 20,
+    backgroundColor: '#ffffff',
+    borderRadius: 10,
+  },
+  modalContentWrapper: {
+    position: 'relative',
+    backgroundColor: '#0AB5FF',
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    width: '100%',
+    height: '100%',
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   modalText: {
     marginBottom: 15,
-    textAlign: "center"
+    textAlign: 'center',
+    fontSize: 18,
+    fontWeight: 'bold',
+    color: 'white',
+  },
+  modalDatePill: {
+    backgroundColor: '#0AB5FF',
+    borderRadius: 20,
+    paddingHorizontal: 20,
+    paddingVertical: 10,
+    marginBottom: 20,
   },
   modalDate: {
-    marginBottom: 15,
-    textAlign: "center",
-    color: 'grey'
-  }
+    fontSize: 14,
+    color: 'white',
+    textAlign: 'center',
+  },
+  closeButton: {
+    position: 'absolute',
+    top: 40,
+    right: 0,
+    backgroundColor: 'white',
+    borderRadius: 20,
+    width: 40,
+    height: 40,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  closeButtonText: {
+    color: '#0AB5FF',
+    fontSize: 24,
+    fontWeight: 'bold',
+  },
 });
+
+
 
 export default App;
