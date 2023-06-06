@@ -38,6 +38,14 @@ This command will start the development server and launch the app in the iOS Sim
 yarn android
 
 
+**Note:** Make sure you have the required dependencies and configurations for running the app on the desired platform. Refer to the Expo documentation for platform-specific instructions.
+
+## Running Tests
+
+To run the tests for the app, use the following command:
+
+yarn test
+
 This command will start the development server and launch the app in the web browser.
 
 **Note:** Make sure you have the required dependencies and configurations for running the app on the desired platform. Refer to the Expo documentation for platform-specific instructions.
