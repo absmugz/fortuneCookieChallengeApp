@@ -13,7 +13,7 @@ Before running the app, make sure you have the following prerequisites:
 
 ### Clone the Repository
 
-git clone <repository-url>
+git clone https://github.com/absmugz/fortuneCookieChallengeApp
 
 ### Navigate to the Project Directory
 
