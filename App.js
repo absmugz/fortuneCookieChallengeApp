@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { View, Text, StyleSheet, Dimensions, ScrollView, Modal, TouchableWithoutFeedback, Animated, TouchableOpacity, TextInput } from 'react-native';
 import fortunesData from './fortunesData';
+import FortuneCards from './components/FortuneCards';
 
 const App = () => {
   const [fortunes, setFortunes] = useState(fortunesData);
@@ -127,7 +128,16 @@ const App = () => {
         <TouchableOpacity style={styles.addButton} onPress={() => setIsAddFortuneModalVisible(true)}>
           <Text style={styles.addButtonText}>+</Text>
         </TouchableOpacity></View>
-      <ScrollView>{renderFortuneCards()}</ScrollView>
+        <ScrollView>
+        <FortuneCards
+          fortunes={fortunes}
+          getRandomColor={getRandomColor}
+          handlePress={handlePress}
+          animatedValue={animatedValue}
+          calculateLighterColor={calculateLighterColor}
+          styles={styles}
+        />
+      </ScrollView>
 
       <Modal
         animationType="slide"
