@@ -1,5 +1,8 @@
 # Fortune Cookie Challenge App
 
+https://github.com/absmugz/fortuneCookieChallengeApp/assets/2528692/7857b882-0e22-4af7-8d4f-7be733fe0e59
+
+
 The Fortune Cookie Challenge App allows you to view and add fortune cookies to your collection.
 
 ## Prerequisites
