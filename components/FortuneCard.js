@@ -1,15 +1,15 @@
 import React from 'react';
-import { View, Text, TouchableWithoutFeedback, Animated } from 'react-native';
+import { View, Text, TouchableWithoutFeedback } from 'react-native';
 
-const FortuneCard = ({ item, style, color, handlePress, animatedValue, calculateLighterColor }) => {
+const FortuneCard = ({ item, style, color, handlePress, calculateLighterColor }) => {
   return (
     <TouchableWithoutFeedback onPress={() => handlePress(item)}>
-      <Animated.View style={[style, { transform: [{ scale: animatedValue }] }]}>
+      <View style={style}>
         <Text style={styles.fortune}>{item.text}</Text>
         <View style={[styles.datePill, { backgroundColor: calculateLighterColor(color) }]}>
           <Text style={styles.date}>{new Date(item.date).toDateString()}</Text>
         </View>
-      </Animated.View>
+      </View>
     </TouchableWithoutFeedback>
   );
 };

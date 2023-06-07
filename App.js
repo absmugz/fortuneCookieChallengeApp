@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import CardList from 'react-native-card-animated-modal';
 import { View, Text, StyleSheet, Dimensions, ScrollView, Modal, TouchableWithoutFeedback, Animated, TouchableOpacity, TextInput } from 'react-native';
 import fortunesData from './fortunesData';
 import FortuneCards from './components/FortuneCards';
@@ -11,6 +12,24 @@ const App = () => {
   const [isAddFortuneModalVisible, setIsAddFortuneModalVisible] = useState(false);
   const [newFortuneText, setNewFortuneText] = useState("");
   const animatedValue = new Animated.Value(1);
+
+  const now = new Date();
+
+  const CARDS = fortunes.map((fortune) => {
+    return {
+      image: {
+        uri:
+          "https://picsum.photos/200/300"
+      },
+      height: 300,
+      renderItem: ({ item }) => (
+        <View>
+        <Text>{item.title}</Text>
+      </View>
+      )
+    };
+  });
+
 
   const windowWidth = Dimensions.get('window').width;
 
@@ -38,44 +57,7 @@ const App = () => {
     return '#' + (0x1000000 + lighterColor).toString(16).slice(1)
   }
 
-  const renderFortuneCards = () => {
-    let rows = [];
-    let data = [...fortunes];
 
-    while (data.length > 0) {
-      let color = getRandomColor();
-
-      let fullWidthItem = data.shift();
-      rows.push(
-        <FortuneCard
-          item={fullWidthItem}
-          color={color}
-          style={[styles.fullWidthItem, { backgroundColor: color }]}
-          key={fullWidthItem.date}
-        />
-      );
-
-      for (let i = 0; i < 2; i++) {
-        if (data.length > 0) {
-          let rowItems = data.splice(0, 2);
-          let row = rowItems.map((item, index) => {
-            let halfWidthColor = getRandomColor();
-            return (
-              <FortuneCard
-                item={item}
-                color={halfWidthColor}
-                style={[styles.halfWidthItem, { backgroundColor: halfWidthColor }]}
-                key={item.date}
-              />
-            );
-          });
-          rows.push(<View style={styles.row} key={'row-' + data.length}>{row}</View>);
-        }
-      }
-    }
-
-    return rows;
-  };
 
 
   const handlePress = (fortune) => {
@@ -107,68 +89,60 @@ const App = () => {
   };
 
 
-  const FortuneCard = ({ item, style, color }) => {
-    return (
-      <TouchableWithoutFeedback onPress={() => handlePress(item)}>
-        <Animated.View style={[style, { transform: [{ scale: animatedValue }] }]}>
-          <Text style={styles.fortune}>{item.text}</Text>
-          <View style={[styles.datePill, { backgroundColor: calculateLighterColor(color) }]}>
-            <Text style={styles.date}>{new Date(item.date).toDateString()}</Text>
-          </View>
-        </Animated.View>
-      </TouchableWithoutFeedback>
-    );
-  }
 
 
   return (
     <View style={styles.container}>
-      <Text style={styles.title}>My Fortunes</Text>
+      {/* <Text style={styles.title}>My Fortunes</Text> */}
       <View style={styles.addButtonContainer}>
         <TouchableOpacity style={styles.addButton} onPress={() => setIsAddFortuneModalVisible(true)}>
           <Text style={styles.addButtonText}>+</Text>
         </TouchableOpacity></View>
-        <ScrollView>
-        <FortuneCards
-          fortunes={fortunes}
-          getRandomColor={getRandomColor}
-          handlePress={handlePress}
-          animatedValue={animatedValue}
-          calculateLighterColor={calculateLighterColor}
-          styles={styles}
-        />
-      </ScrollView>
-
-      <Modal
-        animationType="slide"
-        transparent={true}
-        visible={isModalVisible}
-        onRequestClose={() => setModalVisible(false)}
-      >
-        <View style={styles.modalView}>
-          <View style={styles.modalContentWrapper}>
-            <View style={styles.modalContent}>
-              <View style={styles.closeButton}>
-                <TouchableOpacity onPress={() => setModalVisible(false)}>
-                  <Text style={styles.closeButtonText}>x</Text>
-                </TouchableOpacity>
-              </View>
-              <Text style={styles.modalText}>{selectedFortune?.text}</Text>
-              <View style={styles.modalDatePill}>
-                <Text style={styles.modalDate}>
-                  {new Date(selectedFortune?.date).toDateString()}
-                </Text>
-              </View>
-              <TouchableOpacity
-                style={{ ...styles.openButton, backgroundColor: '#2196F3' }}
-                onPress={() => setModalVisible(!isModalVisible)}
-              >
-                {/* <Text style={styles.textStyle}>Hide Modal</Text> */}
-              </TouchableOpacity>
-            </View>
-          </View>
+       <CardList
+    listProps={{
+      ListHeaderComponent: () => (
+        <View style={{ padding: 16, paddingBottom: 0 }}>
+          <Text
+            style={{
+              fontSize: 13,
+              color: "rgba(0, 0, 0, 0.5)"
+            }}
+          >
+            {now.toDateString()}
+          </Text>
+          <Text style={{ fontSize: 32, fontWeight: "bold" }}>My Fortunes</Text>
         </View>
-      </Modal>
+      )
+    }}
+    data={CARDS}
+    renderItem={({ item, index }) => {
+      /* Render card per item */
+      if (item.renderItem) return item.renderItem({ item, index });
+ 
+      /* Default card when not specified */
+      return (
+        <View>
+          <Text>Default Content</Text>
+        </View>
+      );
+    }}
+    renderDetails={({ item, index }) => (
+      /* You can also provide custom content per item */
+      <View style={{ paddingVertical: 30, paddingHorizontal: 16 }}>
+        <Text style={{ color: "rgba(0, 0, 0, 0.7)", fontSize: 18 }}>
+          Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do
+          eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad
+          minim veniam, quis nostrud exercitation ullamco laboris nisi ut
+          aliquip ex ea commodo consequat. Duis aute irure dolor in
+          reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla
+          pariatur. Excepteur sint occaecat cupidatat non proident, sunt in
+          culpa qui officia deserunt mollit anim id est laborum.
+        </Text>
+      </View>
+    )}
+  />
+
+     
 
 
       <Modal
